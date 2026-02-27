@@ -11,14 +11,6 @@ spec:
             namespace: guestbook-dev
           - env: prod
             namespace: guestbook-prod
-            templatePatch: |-
-              spec:
-                source:
-                  helm:
-                    valueFiles:
-                      - values.yaml
-                      - values-production.yaml
-
   template:
     metadata:
       name: helm-guestbook-{{env}}
@@ -32,12 +24,13 @@ spec:
         targetRevision: master
         path: helm-guestbook
         helm:
-          releaseName: helm-guestbook
+          releaseName: helm-guestbook-{{env}}
           valueFiles:
             - values.yaml
+            - values-{{env}}.yaml  # Use environment-specific values
       destination:
         server: https://kubernetes.default.svc
-        namespace: anmol-harness
+        namespace: "{{namespace}}"  # Use the namespace from generator
       syncPolicy:
         automated:
           prune: true
