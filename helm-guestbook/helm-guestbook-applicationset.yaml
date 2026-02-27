@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: helm-guestbook
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+            namespace: guestbook-dev
+            valueFiles:
+              - values.yaml
+          - env: prod
+            namespace: guestbook-prod
+            valueFiles:
+              - values.yaml
+              - values-production.yaml
+  template:
+    metadata:
+      name: helm-guestbook-{{env}}
+      labels:
+        app.kubernetes.io/name: helm-guestbook
+        app.kubernetes.io/part-of: guestbook
+        env: "{{env}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/anmolharness/argocd-example-apps.git
+        targetRevision: master
+        path: helm-guestbook
+        helm:
+          releaseName: helm-guestbook
+          valueFiles: {{valueFiles}}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{namespace}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
