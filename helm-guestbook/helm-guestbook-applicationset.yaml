@@ -9,19 +9,21 @@ spec:
         elements:
           - env: dev
             namespace: guestbook-dev
-            valueFiles:
-              - values.yaml
           - env: prod
             namespace: guestbook-prod
-            valueFiles:
-              - values.yaml
-              - values-production.yaml
+            templatePatch: |-
+              spec:
+                source:
+                  helm:
+                    valueFiles:
+                      - values.yaml
+                      - values-production.yaml
+
   template:
     metadata:
       name: helm-guestbook-{{env}}
       labels:
         app.kubernetes.io/name: helm-guestbook
-        app.kubernetes.io/part-of: guestbook
         env: "{{env}}"
     spec:
       project: default
@@ -31,7 +33,8 @@ spec:
         path: helm-guestbook
         helm:
           releaseName: helm-guestbook
-          valueFiles: {{valueFiles}}
+          valueFiles:
+            - values.yaml
       destination:
         server: https://kubernetes.default.svc
         namespace: "{{namespace}}"
